@@ -1,234 +1,186 @@
 "use client";
 import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardFooter, CardHeader } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
-const tasks = [
-  { id: 1, title: "Design new landing page", assignee: "Sarah K.", status: "In Progress", priority: "High", due: "Apr 30", progress: 65 },
-  { id: 2, title: "Fix authentication bug", assignee: "Mike R.", status: "Todo", priority: "Critical", due: "Apr 28", progress: 0 },
-  { id: 3, title: "Write API documentation", assignee: "Priya S.", status: "Done", priority: "Medium", due: "Apr 25", progress: 100 },
-  { id: 4, title: "Setup CI/CD pipeline", assignee: "Tom W.", status: "In Progress", priority: "High", due: "May 2", progress: 40 },
-  { id: 5, title: "User testing session", assignee: "Anna B.", status: "Todo", priority: "Low", due: "May 5", progress: 0 },
-  { id: 6, title: "Database optimization", assignee: "James L.", status: "In Review", priority: "High", due: "Apr 29", progress: 80 },
-  { id: 7, title: "Mobile responsive fixes", assignee: "Sarah K.", status: "In Progress", priority: "Medium", due: "May 1", progress: 55 },
-  { id: 8, title: "Security audit", assignee: "Mike R.", status: "Todo", priority: "Critical", due: "May 7", progress: 0 },
+type Status = "COMPLETED" | "INCOMPLETE" | "MISSING";
+
+const sheets: { id: number; week: number; range: string; status: Status }[] = [
+  { id: 1, week: 1, range: "1 - 5 January, 2023", status: "COMPLETED" },
+  { id: 2, week: 2, range: "8 - 12 January, 2023", status: "COMPLETED" },
+  { id: 3, week: 3, range: "15 - 19 January, 2023", status: "INCOMPLETE" },
+  { id: 4, week: 4, range: "22 - 26 January, 2023", status: "COMPLETED" },
+  { id: 5, week: 5, range: "29 January - 2 February, 2023", status: "MISSING" },
+  { id: 6, week: 6, range: "5 - 9 February, 2023", status: "COMPLETED" },
+  { id: 7, week: 7, range: "12 - 16 February, 2023", status: "INCOMPLETE" },
 ];
 
-const statusColor: Record<string, { bg: string; color: string }> = {
-  "In Progress": { bg: "#dbeafe", color: "#2563eb" },
-  "Todo": { bg: "#f3f4f6", color: "#6b7280" },
-  "Done": { bg: "#d1fae5", color: "#059669" },
-  "In Review": { bg: "#fef3c7", color: "#d97706" },
+const statusTone: Record<
+  Status,
+  { tone: "success" | "warning" | "danger"; label: string }
+> = {
+  COMPLETED: { tone: "success", label: "COMPLETED" },
+  INCOMPLETE: { tone: "warning", label: "INCOMPLETE" },
+  MISSING: { tone: "danger", label: "MISSING" },
 };
 
-const priorityColor: Record<string, { bg: string; color: string }> = {
-  "Critical": { bg: "#fee2e2", color: "#dc2626" },
-  "High": { bg: "#fce7f3", color: "#be185d" },
-  "Medium": { bg: "#e0e7ff", color: "#4338ca" },
-  "Low": { bg: "#f0fdf4", color: "#15803d" },
+const actionLabel: Record<Status, string> = {
+  COMPLETED: "View",
+  INCOMPLETE: "Update",
+  MISSING: "Create",
 };
 
 export default function TableView() {
-  const [selected, setSelected] = useState<number[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<"ALL" | Status>("ALL");
 
-  const filtered = tasks.filter(t =>
-    t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    t.assignee.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const toggleAll = () => {
-    setSelected(selected.length === filtered.length ? [] : filtered.map(t => t.id));
-  };
+  const rows = sheets.filter((s) => {
+    const matchQuery = s.range.toLowerCase().includes(query.toLowerCase());
+    const matchFilter = filter === "ALL" || s.status === filter;
+    return matchQuery && matchFilter;
+  });
 
   return (
-    <div style={{ padding: "32px", fontFamily: "system-ui, sans-serif" }}>
-      {/* Header */}
-      <div style={{ marginBottom: "24px" }}>
-        <h1 style={{ fontSize: "24px", fontWeight: 700, color: "#111827", marginBottom: "4px" }}>Task Management</h1>
-        <p style={{ color: "#6b7280", fontSize: "14px" }}>Track and manage your team&apos;s tasks</p>
+    <div className="mx-auto max-w-6xl px-6 py-8">
+      <div className="mb-6">
+        <p className="text-sm text-slate-500">Timesheets</p>
+        <h1 className="mt-1 text-2xl font-bold text-slate-900">
+          Your Timesheets
+        </h1>
       </div>
 
-      {/* Controls */}
-      <div style={{
-        background: "white",
-        borderRadius: "12px",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)",
-        overflow: "hidden",
-      }}>
-        <div style={{
-          padding: "16px 20px",
-          borderBottom: "1px solid #f3f4f6",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: "12px",
-        }}>
-          <div style={{ position: "relative", flex: 1, maxWidth: "320px" }}>
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#9ca3af" strokeWidth="2"
-              style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)" }}>
-              <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
-            </svg>
-            <input
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search tasks..."
-              style={{
-                width: "100%", padding: "8px 12px 8px 36px",
-                border: "1px solid #e5e7eb", borderRadius: "8px",
-                fontSize: "14px", outline: "none", color: "#374151",
-                boxSizing: "border-box",
-              }}
-            />
-          </div>
-          <div style={{ display: "flex", gap: "8px" }}>
-            <button style={{
-              padding: "8px 16px", borderRadius: "8px",
-              border: "1px solid #e5e7eb", background: "white",
-              color: "#374151", fontSize: "13px", cursor: "pointer",
-              display: "flex", alignItems: "center", gap: "6px",
-            }}>
-              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+      <Card className="overflow-hidden">
+        <CardHeader>
+          <div className="flex flex-1 items-center gap-3">
+            <div className="relative w-full max-w-xs">
+              <svg
+                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+                viewBox="0 0 20 20"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <circle cx="9" cy="9" r="6" />
+                <path d="M14 14l4 4" strokeLinecap="round" />
               </svg>
-              Filter
-            </button>
-            <button style={{
-              padding: "8px 16px", borderRadius: "8px",
-              background: "linear-gradient(135deg, #6c63ff, #a855f7)",
-              color: "white", fontSize: "13px", cursor: "pointer",
-              border: "none", fontWeight: 600,
-              display: "flex", alignItems: "center", gap: "6px",
-            }}>
-              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                <path d="M12 5v14M5 12h14"/>
-              </svg>
-              Add Task
-            </button>
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search week..."
+                className="pl-9"
+              />
+            </div>
+            <Select
+              value={filter}
+              onChange={(e) => setFilter(e.target.value as typeof filter)}
+              className="max-w-[180px]"
+            >
+              <option value="ALL">All status</option>
+              <option value="COMPLETED">Completed</option>
+              <option value="INCOMPLETE">Incomplete</option>
+              <option value="MISSING">Missing</option>
+            </Select>
           </div>
-        </div>
+        </CardHeader>
 
-        {/* Table */}
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ background: "#f9fafb" }}>
-              <th style={{ padding: "12px 20px", textAlign: "left", width: "40px" }}>
-                <input type="checkbox" checked={selected.length === filtered.length && filtered.length > 0}
-                  onChange={toggleAll} style={{ accentColor: "#6c63ff" }} />
-              </th>
-              {["Task", "Assignee", "Status", "Priority", "Due Date", "Progress"].map(h => (
-                <th key={h} style={{
-                  padding: "12px 16px", textAlign: "left",
-                  fontSize: "12px", fontWeight: 600, color: "#6b7280",
-                  letterSpacing: "0.5px", textTransform: "uppercase",
-                }}>
-                  {h}
-                </th>
-              ))}
-              <th style={{ padding: "12px 16px", width: "48px" }}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((task, idx) => {
-              const isSelected = selected.includes(task.id);
-              const sc = statusColor[task.status];
-              const pc = priorityColor[task.priority];
-              return (
-                <tr key={task.id} style={{
-                  borderTop: "1px solid #f3f4f6",
-                  background: isSelected ? "rgba(108,99,255,0.04)" : idx % 2 === 0 ? "white" : "#fafafa",
-                  transition: "background 0.15s",
-                }}
-                  onMouseOver={e => !isSelected && ((e.currentTarget as HTMLElement).style.background = "#f9fafb")}
-                  onMouseOut={e => !isSelected && ((e.currentTarget as HTMLElement).style.background = idx % 2 === 0 ? "white" : "#fafafa")}
-                >
-                  <td style={{ padding: "14px 20px" }}>
-                    <input type="checkbox" checked={isSelected}
-                      onChange={() => setSelected(isSelected ? selected.filter(s => s !== task.id) : [...selected, task.id])}
-                      style={{ accentColor: "#6c63ff" }} />
-                  </td>
-                  <td style={{ padding: "14px 16px", fontSize: "14px", color: "#111827", fontWeight: 500 }}>
-                    {task.title}
-                  </td>
-                  <td style={{ padding: "14px 16px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                      <div style={{
-                        width: "28px", height: "28px", borderRadius: "50%",
-                        background: "linear-gradient(135deg, #f093fb, #f5576c)",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: "11px", color: "white", fontWeight: 700,
-                      }}>
-                        {task.assignee.split(" ").map(n => n[0]).join("")}
-                      </div>
-                      <span style={{ fontSize: "13px", color: "#374151" }}>{task.assignee}</span>
-                    </div>
-                  </td>
-                  <td style={{ padding: "14px 16px" }}>
-                    <span style={{
-                      background: sc.bg, color: sc.color,
-                      padding: "4px 10px", borderRadius: "20px",
-                      fontSize: "12px", fontWeight: 500,
-                    }}>
-                      {task.status}
-                    </span>
-                  </td>
-                  <td style={{ padding: "14px 16px" }}>
-                    <span style={{
-                      background: pc.bg, color: pc.color,
-                      padding: "4px 10px", borderRadius: "20px",
-                      fontSize: "12px", fontWeight: 500,
-                    }}>
-                      {task.priority}
-                    </span>
-                  </td>
-                  <td style={{ padding: "14px 16px", fontSize: "13px", color: "#6b7280" }}>{task.due}</td>
-                  <td style={{ padding: "14px 16px", minWidth: "120px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                      <div style={{ flex: 1, height: "6px", background: "#e5e7eb", borderRadius: "99px", overflow: "hidden" }}>
-                        <div style={{
-                          width: `${task.progress}%`, height: "100%",
-                          background: task.progress === 100 ? "#10b981" : "linear-gradient(90deg, #6c63ff, #a855f7)",
-                          borderRadius: "99px",
-                          transition: "width 0.3s",
-                        }} />
-                      </div>
-                      <span style={{ fontSize: "12px", color: "#9ca3af", minWidth: "32px" }}>{task.progress}%</span>
-                    </div>
-                  </td>
-                  <td style={{ padding: "14px 16px" }}>
-                    <button style={{
-                      background: "none", border: "none", cursor: "pointer",
-                      color: "#9ca3af", padding: "4px", borderRadius: "6px",
-                    }}>
-                      <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-                        <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
-                      </svg>
-                    </button>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-slate-50 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                <th className="px-6 py-3">Week #</th>
+                <th className="px-6 py-3">Date</th>
+                <th className="px-6 py-3">Status</th>
+                <th className="px-6 py-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200">
+              {rows.map((s) => {
+                const meta = statusTone[s.status];
+                return (
+                  <tr key={s.id} className="transition-colors hover:bg-slate-50">
+                    <td className="px-6 py-4 font-medium text-slate-900">
+                      {s.week}
+                    </td>
+                    <td className="px-6 py-4 text-slate-600">{s.range}</td>
+                    <td className="px-6 py-4">
+                      <Badge tone={meta.tone}>{meta.label}</Badge>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <Button variant="link" size="sm">
+                        {actionLabel[s.status]}
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })}
+              {rows.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={4}
+                    className="px-6 py-12 text-center text-slate-500"
+                  >
+                    No timesheets match your filters.
                   </td>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
-
-        {/* Footer */}
-        <div style={{
-          padding: "14px 20px", borderTop: "1px solid #f3f4f6",
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          color: "#9ca3af", fontSize: "13px",
-        }}>
-          <span>{selected.length > 0 ? `${selected.length} selected` : `${filtered.length} tasks`}</span>
-          <div style={{ display: "flex", gap: "4px" }}>
-            {[1, 2, 3].map(p => (
-              <button key={p} style={{
-                width: "32px", height: "32px", borderRadius: "6px",
-                border: p === 1 ? "none" : "1px solid #e5e7eb",
-                background: p === 1 ? "linear-gradient(135deg, #6c63ff, #a855f7)" : "white",
-                color: p === 1 ? "white" : "#374151",
-                fontSize: "13px", cursor: "pointer", fontWeight: p === 1 ? 600 : 400,
-              }}>{p}</button>
-            ))}
-          </div>
+              )}
+            </tbody>
+          </table>
         </div>
-      </div>
+
+        <CardFooter>
+          <p className="text-sm text-slate-500">
+            Showing{" "}
+            <span className="font-medium text-slate-900">{rows.length}</span> of{" "}
+            {sheets.length} weeks
+          </p>
+          <Pagination />
+        </CardFooter>
+      </Card>
+
+      <p className="mt-6 text-center text-xs text-slate-400">
+        © 2024 ticktock company. All rights reserved.
+      </p>
+    </div>
+  );
+}
+
+function Pagination() {
+  const [page, setPage] = useState(1);
+  const pages = [1, 2, 3];
+  return (
+    <div className="flex items-center gap-1">
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={() => setPage((p) => Math.max(1, p - 1))}
+      >
+        Previous
+      </Button>
+      {pages.map((p) => (
+        <button
+          key={p}
+          onClick={() => setPage(p)}
+          className={cn(
+            "h-8 w-8 rounded-md text-sm font-medium transition-colors",
+            p === page
+              ? "bg-blue-600 text-white"
+              : "text-slate-600 hover:bg-slate-100"
+          )}
+        >
+          {p}
+        </button>
+      ))}
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={() => setPage((p) => Math.min(3, p + 1))}
+      >
+        Next
+      </Button>
     </div>
   );
 }
