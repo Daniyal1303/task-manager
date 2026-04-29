@@ -6,6 +6,7 @@ import { Card, CardFooter, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import CopyRight from "./copy-right";
 
 type Status = "COMPLETED" | "INCOMPLETE" | "MISSING";
 
@@ -101,7 +102,10 @@ export default function TableView() {
               {rows.map((s) => {
                 const meta = statusTone[s.status];
                 return (
-                  <tr key={s.id} className="transition-colors hover:bg-slate-50">
+                  <tr
+                    key={s.id}
+                    className="transition-colors hover:bg-slate-50"
+                  >
                     <td className="px-6 py-4 font-medium text-slate-900">
                       {s.week}
                     </td>
@@ -141,9 +145,7 @@ export default function TableView() {
         </CardFooter>
       </Card>
 
-      <p className="mt-6 text-center text-xs text-slate-400">
-        © 2024 ticktock company. All rights reserved.
-      </p>
+      <CopyRight />
     </div>
   );
 }
@@ -168,7 +170,7 @@ function Pagination() {
             "h-8 w-8 rounded-md text-sm font-medium transition-colors",
             p === page
               ? "bg-blue-600 text-white"
-              : "text-slate-600 hover:bg-slate-100"
+              : "text-slate-600 hover:bg-slate-100",
           )}
         >
           {p}

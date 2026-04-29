@@ -16,9 +16,7 @@ export function AppHeader() {
     <header className="sticky top-0 z-40 border-b border-slate-200 bg-white">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
         <div className="flex items-center gap-8">
-          <Link href="/timesheets">
-            <Logo />
-          </Link>
+          <Link href="/timesheets">ticktock</Link>
           <nav className="flex items-center gap-1">
             {links.map((l) => {
               const active = pathname.startsWith(l.href);
@@ -30,7 +28,7 @@ export function AppHeader() {
                     "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
                     active
                       ? "bg-blue-50 text-blue-700"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
                   )}
                 >
                   {l.label}
@@ -43,11 +41,8 @@ export function AppHeader() {
         <div className="flex items-center gap-3">
           <div className="hidden text-right sm:block">
             <p className="text-sm font-semibold text-slate-900">Amila</p>
-            <p className="text-xs text-slate-500">Designer</p>
           </div>
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-orange-500 text-sm font-semibold text-white">
-            A
-          </div>
+
           <Link
             href="/login"
             className="rounded-md p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"

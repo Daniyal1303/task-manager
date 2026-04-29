@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { AddEntryDialog } from "@/components/add-entry-dialog";
 import { cn } from "@/lib/utils";
+import CopyRight from "./copy-right";
 
 type Entry = {
   id: number;
@@ -61,7 +62,7 @@ export default function ListView() {
 
   const totalMinutes = days.reduce(
     (acc, d) => acc + d.entries.reduce((s, e) => s + e.hours * 60, 0),
-    0
+    0,
   );
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
@@ -97,9 +98,7 @@ export default function ListView() {
         ))}
       </Card>
 
-      <p className="mt-6 text-center text-xs text-slate-400">
-        © 2024 ticktock company. All rights reserved.
-      </p>
+      <CopyRight />
 
       <AddEntryDialog open={open} onOpenChange={setOpen} />
     </div>
@@ -130,7 +129,7 @@ function DayBlock({
               onMouseLeave={() => setHovered(null)}
               className={cn(
                 "flex items-center gap-4 px-6 py-3 transition-colors",
-                hovered === entry.id && "bg-blue-50"
+                hovered === entry.id && "bg-blue-50",
               )}
             >
               <div className="min-w-0 flex-1">
